@@ -17,8 +17,8 @@ export async function POST(req: Request) {
   // Ask OpenAI for a streaming chat completion given the prompt
   const response = await venusOpenAPIClient.request('http://v2.open.venus.oa.com/chat/single', {
     appGroupId: 2727,
-    // model: 'gpt-3.5-turbo-16k',
-    model: 'gpt-4-0125-preview',
+    model: 'gpt-3.5-turbo-16k',
+    // model: 'gpt-4-0125-preview',
     stream: true,
     messages,
 

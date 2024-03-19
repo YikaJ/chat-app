@@ -22,20 +22,17 @@ export default function Conversation({
   onSubmit,
   onChange,
 }: IProps) {
-  const endMessageRef = useAutoScrollToBottom([messages]);
+  const scrollContainerRef = useAutoScrollToBottom([messages]);
 
   return (
     <ResizablePanelGroup direction="vertical">
       <ResizablePanel defaultSize={80}>
-        <div className=" h-full  overflow-y-scroll">
+        <div className=" h-full overflow-y-scroll" ref={scrollContainerRef}>
           <div className="space-y-8 p-10">
             {messages.map((m) => (
               <ChatMessage key={m.id} message={m} />
             ))}
           </div>
-
-          {/* 用于标记滚动 */}
-          <div ref={endMessageRef} />
         </div>
       </ResizablePanel>
       <ResizableHandle />

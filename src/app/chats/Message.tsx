@@ -17,7 +17,7 @@ export default function Message(props: IProps) {
             <AvatarFallback className="text-2xl">🤖</AvatarFallback>
           </Avatar>
         </div>
-        <div className="flex w-max max-w-[95%] flex-col gap-2 rounded-lg p-5 bg-muted">
+        <div className="flex w-max max-w-[95%] flex-col gap-2 rounded-lg px-5 bg-muted">
           <Markdown
             className="prose"
             components={{
