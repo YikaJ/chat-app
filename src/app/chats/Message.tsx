@@ -19,6 +19,7 @@ export default function Message(props: IProps) {
         </div>
         <div className="flex w-max max-w-[95%] flex-col gap-2 rounded-lg p-5 bg-muted">
           <Markdown
+            className="prose"
             components={{
               code(props) {
                 const { children, className, node, ref, ...rest } = props;

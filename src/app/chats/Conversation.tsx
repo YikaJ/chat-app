@@ -7,6 +7,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ChatMessage from './Message';
+import { useAutoScrollToBottom } from '../hooks';
 
 interface IProps {
   messages: Message[];
@@ -21,13 +22,20 @@ export default function Conversation({
   onSubmit,
   onChange,
 }: IProps) {
+  const endMessageRef = useAutoScrollToBottom([messages]);
+
   return (
     <ResizablePanelGroup direction="vertical">
       <ResizablePanel defaultSize={80}>
-        <div className="space-y-8 p-10">
-          {messages.map((m) => (
-            <ChatMessage key={m.id} message={m} />
-          ))}
+        <div className=" h-full  overflow-y-scroll">
+          <div className="space-y-8 p-10">
+            {messages.map((m) => (
+              <ChatMessage key={m.id} message={m} />
+            ))}
+          </div>
+
+          {/* 用于标记滚动 */}
+          <div ref={endMessageRef} />
         </div>
       </ResizablePanel>
       <ResizableHandle />
