@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useUIState, useActions } from 'ai/rsc';
-import type { AI } from '../action';
+import { AI } from '../action';
 
 export default function Page() {
   const [inputValue, setInputValue] = useState('');

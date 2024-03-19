@@ -141,11 +141,11 @@ export function azureRender<
       ...(tools
         ? {
             async experimental_onToolCall(toolCallPayload) {
-              console.log('触发函数', JSON.stringify(toolCallPayload));
               hasFunction = true;
               for (const tool of toolCallPayload.tools) {
                 handleRender(
                   tool.func.arguments,
+                  // 将 tools 参数交给 tool 定义的 render
                   options.tools?.[tool.func.name as any]?.render,
                   ui
                 );

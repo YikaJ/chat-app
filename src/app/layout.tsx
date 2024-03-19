@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { AI } from './action';
 
 const inter = Inter({ subsets: ['latin'] });
+const AIProvider = AI as unknown as any;
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -18,9 +19,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <Header />
-        <AI>{children}</AI>
+      <body className="w-full h-full max-h-screen">
+        <div className="w-full h-full max-h-screen flex flex-col">
+          <Header />
+          <div className="flex-1">
+            <AIProvider>{children}</AIProvider>
+          </div>
+        </div>
       </body>
     </html>
   );

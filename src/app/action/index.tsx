@@ -1,8 +1,14 @@
 import { OpenAI } from 'openai';
-import { createAI, getMutableAIState, render } from 'ai/rsc';
+import {
+  createAI,
+  createStreamableUI,
+  getMutableAIState,
+  render,
+} from 'ai/rsc';
 import { z } from 'zod';
-import { azureRender } from './utils/streamable';
+import { azureRender } from '../utils/streamable';
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
+import { sleep } from 'openai/core.mjs';
 
 const openaiClient = new OpenAIClient(
   'https://yika-openai.openai.azure.com/',
@@ -36,6 +42,7 @@ function FlightCard({
 
 // An example of a function that fetches flight information from an external API.
 async function getFlightInfo(flightNumber: string) {
+  await sleep(3000);
   return {
     flightNumber,
     departure: 'New York',
@@ -45,7 +52,7 @@ async function getFlightInfo(flightNumber: string) {
 
 async function submitUserMessage(userInput: string) {
   'use server';
-
+  const loading = createStreamableUI(<Spinner />);
   const aiState = getMutableAIState<typeof AI>();
 
   // Update the AI state with the new user message.
@@ -80,7 +87,7 @@ async function submitUserMessage(userInput: string) {
         ]);
       }
 
-      return <p>{content}</p>;
+      return <p className="text-red-400">{content}</p>;
     },
     tools: {
       get_flight_info: {
@@ -90,9 +97,9 @@ async function submitUserMessage(userInput: string) {
             flight_number: z.string().describe('the number of the flight'),
           })
           .required(),
-        render: async function* ({ flight_number }) {
+        render: async function ({ flight_number }) {
+          await (<div className=" text-green ">loading</div>);
           // Show a spinner on the client while we wait for the response.
-          yield <Spinner />;
 
           // Fetch the flight information from an external API.
           const flightInfo = await getFlightInfo(flight_number);

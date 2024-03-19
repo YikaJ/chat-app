@@ -16,11 +16,14 @@ export function Header() {
             <span className="hidden font-bold sm:inline-block">AI</span>
           </a>
           <nav className="flex items-center gap-6 text-sm">
-            <a className="transition-colors hover:text-foreground/80 text-foreground/60">
+            <a
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              href="/chats"
+            >
               会话
             </a>
             <a className="transition-colors hover:text-foreground/80 text-foreground/60">
-              应用
+              运维专项
             </a>
           </nav>
         </div>
