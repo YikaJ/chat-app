@@ -11,7 +11,6 @@ import { Separator } from '@/components/ui/separator';
 import Conversation from './Conversation';
 
 export default function Chat() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat();
   return (
     <ResizablePanelGroup
       direction="horizontal"
@@ -28,12 +27,7 @@ export default function Chat() {
       </ResizablePanel>
       <ResizableHandle withHandle />
       <ResizablePanel defaultSize={80}>
-        <Conversation
-          messages={messages}
-          input={input}
-          onChange={handleInputChange}
-          onSubmit={handleSubmit}
-        />
+        <Conversation />
       </ResizablePanel>
     </ResizablePanelGroup>
   );

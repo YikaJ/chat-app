@@ -1,4 +1,4 @@
-import type { Message, UseChatHelpers } from 'ai/react';
+import { useChat, type Message, type UseChatHelpers } from 'ai/react';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -9,26 +9,26 @@ import { Input } from '@/components/ui/input';
 import ChatMessage from '@/components/chatbot/ChatMessage';
 import { useAutoScrollToBottom } from '../hooks';
 import { Textarea } from '@/components/ui/textarea';
-import { KeyboardEvent, KeyboardEventHandler, useRef } from 'react';
+import {
+  FormEvent,
+  KeyboardEvent,
+  KeyboardEventHandler,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { ImperativePanelHandle } from 'react-resizable-panels';
 import { AutosizeTextarea } from '@/components/ui/auto-size-textarea';
+import { useToast } from '@/components/ui/use-toast';
 
-interface IProps {
-  messages: Message[];
-  onSubmit: UseChatHelpers['handleSubmit'];
-  input: string;
-  onChange: UseChatHelpers['handleInputChange'];
-}
-
-export default function Conversation({
-  input,
-  messages,
-  onSubmit,
-  onChange,
-}: IProps) {
+export default function Conversation() {
+  const { messages, input, handleInputChange, handleSubmit, isLoading, stop } =
+    useChat();
   const scrollContainerRef = useAutoScrollToBottom([messages]);
   const submitBtnRef = useRef<HTMLButtonElement>(null);
   const inputPanelRef = useRef<ImperativePanelHandle>(null);
+  const { toast } = useToast();
+  const [waitingAssistant, setWaitingAssistant] = useState(false);
 
   function handleTextareaKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     // 纯回车才发送
@@ -39,20 +39,53 @@ export default function Conversation({
       !e.altKey
     ) {
       e.preventDefault();
-      if (input.trim() && submitBtnRef.current) {
+      if (submitBtnRef.current) {
         submitBtnRef.current.click();
       }
     }
   }
+
+  function handleFormSubmit(e: FormEvent<HTMLFormElement>) {
+    if (isLoading) {
+      toast({ title: '请先等待上一段内容结束后再发送' });
+      return;
+    }
+
+    // 有内容再提交
+    if (input.trim()) {
+      setWaitingAssistant(true);
+      handleSubmit(e);
+    }
+  }
+
+  useEffect(() => {
+    const lastMessage = messages.slice(-1)[0];
+    if (isLoading && lastMessage?.role === 'assistant' && lastMessage.content) {
+      setWaitingAssistant(false);
+    }
+  }, [isLoading, messages]);
 
   return (
     <ResizablePanelGroup direction="vertical">
       <ResizablePanel defaultSize={80}>
         <div className=" h-full overflow-y-scroll" ref={scrollContainerRef}>
           <div className="space-y-8 p-10">
-            {messages.map((m) => (
+            {messages.map((m, index) => (
               <ChatMessage key={m.id} message={m} />
             ))}
+
+            {waitingAssistant ? (
+              <ChatMessage
+                key="loading"
+                message={{
+                  id: 'loading',
+                  role: 'assistant',
+                  content: '努力思考中...',
+                }}
+              />
+            ) : (
+              ''
+            )}
           </div>
         </div>
       </ResizablePanel>
@@ -64,13 +97,12 @@ export default function Conversation({
         className="flex items-center justify-center px-10"
         ref={inputPanelRef}
       >
-        <form onSubmit={onSubmit} className="w-full">
+        <form onSubmit={handleFormSubmit} className="w-full">
           <div className="flex w-full items-center space-x-2 px-14">
             <AutosizeTextarea
               placeholder="请输入内容..."
               value={input}
-              onChange={onChange}
-              // className="max-h-[4em]"
+              onChange={handleInputChange}
               onKeyDown={handleTextareaKeyDown}
               rows={1}
               maxHeight={74}
