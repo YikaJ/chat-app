@@ -12,12 +12,8 @@ import Conversation from './Conversation';
 
 export default function Chat() {
   return (
-    <ResizablePanelGroup
-      direction="horizontal"
-      autoSaveId="PAGE_CHATS_RESIZABLE"
-      className="border"
-    >
-      <ResizablePanel defaultSize={20} minSize={10} maxSize={30}>
+    <ResizablePanelGroup direction="horizontal" className="border">
+      <ResizablePanel defaultSize={10} minSize={10} maxSize={30}>
         <div className="p-3">
           <Button className="w-full box-border">新建会话</Button>
           <Separator className="my-3" />
