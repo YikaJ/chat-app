@@ -69,7 +69,7 @@ export default function Conversation() {
     <ResizablePanelGroup direction="vertical">
       <ResizablePanel defaultSize={80}>
         <div className=" h-full overflow-y-scroll" ref={scrollContainerRef}>
-          <div className="space-y-8 p-10">
+          <div className="space-y-8 p-10  pr-24">
             {messages.map((m, index) => (
               <ChatMessage key={m.id} message={m} />
             ))}
