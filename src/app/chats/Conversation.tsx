@@ -6,8 +6,12 @@ import {
 } from '@/components/ui/resizable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import ChatMessage from './Message';
+import ChatMessage from '@/components/chatbot/ChatMessage';
 import { useAutoScrollToBottom } from '../hooks';
+import { Textarea } from '@/components/ui/textarea';
+import { KeyboardEvent, KeyboardEventHandler, useRef } from 'react';
+import { ImperativePanelHandle } from 'react-resizable-panels';
+import { AutosizeTextarea } from '@/components/ui/auto-size-textarea';
 
 interface IProps {
   messages: Message[];
@@ -23,6 +27,23 @@ export default function Conversation({
   onChange,
 }: IProps) {
   const scrollContainerRef = useAutoScrollToBottom([messages]);
+  const submitBtnRef = useRef<HTMLButtonElement>(null);
+  const inputPanelRef = useRef<ImperativePanelHandle>(null);
+
+  function handleTextareaKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    // 纯回车才发送
+    if (
+      e.key.toLowerCase() === 'enter' &&
+      !e.shiftKey &&
+      !e.ctrlKey &&
+      !e.altKey
+    ) {
+      e.preventDefault();
+      if (input.trim() && submitBtnRef.current) {
+        submitBtnRef.current.click();
+      }
+    }
+  }
 
   return (
     <ResizablePanelGroup direction="vertical">
@@ -37,19 +58,28 @@ export default function Conversation({
       </ResizablePanel>
       <ResizableHandle />
       <ResizablePanel
-        defaultSize={6}
+        defaultSize={10}
         minSize={6}
-        maxSize={15}
+        maxSize={12}
         className="flex items-center justify-center px-10"
+        ref={inputPanelRef}
       >
         <form onSubmit={onSubmit} className="w-full">
-          <div className="flex w-full items-center space-x-2">
-            <Input
+          <div className="flex w-full items-center space-x-2 px-14">
+            <AutosizeTextarea
               placeholder="请输入内容..."
               value={input}
               onChange={onChange}
+              // className="max-h-[4em]"
+              onKeyDown={handleTextareaKeyDown}
+              rows={1}
+              maxHeight={74}
+              minHeight={30}
+              className="resize-none"
             />
-            <Button type="submit">提交</Button>
+            <Button ref={submitBtnRef} type="submit">
+              提交
+            </Button>
           </div>
         </form>
       </ResizablePanel>
