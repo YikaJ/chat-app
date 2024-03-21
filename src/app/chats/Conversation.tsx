@@ -23,8 +23,20 @@ import { useToast } from '@/components/ui/use-toast';
 import { LoaderCircle } from 'lucide-react';
 
 export default function Conversation() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, stop } =
-    useChat();
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    stop,
+    error,
+  } = useChat({
+    onError(err) {
+      console.error(err);
+      stop();
+    },
+  });
   const scrollContainerRef = useAutoScrollToBottom([messages]);
   const submitBtnRef = useRef<HTMLButtonElement>(null);
   const inputPanelRef = useRef<ImperativePanelHandle>(null);
@@ -75,7 +87,7 @@ export default function Conversation() {
               <ChatMessage key={m.id} message={m} />
             ))}
 
-            {waitingAssistant ? (
+            {!error && waitingAssistant && (
               <ChatMessage
                 key="loading"
                 message={{
@@ -89,8 +101,17 @@ export default function Conversation() {
                   ),
                 }}
               />
-            ) : (
-              ''
+            )}
+
+            {error && (
+              <ChatMessage
+                key="loading"
+                message={{
+                  id: 'loading',
+                  role: 'assistant',
+                  content: error.message || '模型出错了...',
+                }}
+              />
             )}
           </div>
         </div>
