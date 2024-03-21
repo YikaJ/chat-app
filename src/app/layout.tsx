@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/Header';
 import { AI } from './action';
+import { AuthProvider } from './auth/Provider';
 
 const inter = Inter({ subsets: ['latin'] });
 const AIProvider = AI as unknown as any;
@@ -20,12 +21,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="w-full h-full max-h-screen">
-        <div className="w-full h-full max-h-screen flex flex-col">
-          <Header />
-          <div className="flex-1">
-            <AIProvider>{children}</AIProvider>
+        <AuthProvider>
+          <div className="w-full h-full max-h-screen flex flex-col">
+            <Header />
+            <div className="flex-1">
+              <AIProvider>{children}</AIProvider>
+            </div>
           </div>
-        </div>
+        </AuthProvider>
       </body>
     </html>
   );

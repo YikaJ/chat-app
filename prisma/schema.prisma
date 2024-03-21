@@ -7,6 +7,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// 账号体系
 model Account {
   id                 Int       @id @default(autoincrement())
   compoundId         String    @unique @map(name: "compound_id")
@@ -47,6 +48,9 @@ model User {
   createdAt     DateTime  @default(now()) @map(name: "created_at")
   updatedAt     DateTime  @default(now()) @map(name: "updated_at")
 
+  // 一个用户有多个对话历史
+  Chat Chat[]
+
   @@map(name: "users")
 }
 
@@ -59,4 +63,18 @@ model VerificationRequest {
   updatedAt  DateTime @default(now()) @map(name: "updated_at")
 
   @@map(name: "verification_requests")
+}
+
+// 对话列表
+model Chat {
+  id        String   @id @default(uuid())
+  title     String
+  messages  Json[]
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updatedAt DateTime @default(now()) @map(name: "updated_at")
+
+  User   User? @relation(fields: [userId], references: [id])
+  userId Int?
+
+  @@map(name: "chats")
 }
