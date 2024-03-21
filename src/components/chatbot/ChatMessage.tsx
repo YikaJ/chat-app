@@ -53,42 +53,46 @@ export default function ChatMessage(props: IProps) {
           </Avatar>
         </div>
         <div className="flex w-max flex-col gap-2 rounded-lg px-5 bg-muted">
-          <Markdown
-            className="prose max-w-full"
-            components={{
-              pre(props) {
-                return (
-                  <pre
-                    className="relative group/pre"
-                    style={{ background: 'rgb(45, 45, 45)' }}
-                  >
-                    <CopyButton content={props.children} />
-                    {props.children}
-                  </pre>
-                );
-              },
-              code(props) {
-                const { children, className, node, ref, ...rest } = props;
-                const match = /language-(\w+)/.exec(className || '');
-                return match ? (
-                  <SyntaxHighlighter
-                    {...rest}
-                    PreTag="div"
-                    language={match[1]}
-                    style={tomorrow}
-                  >
-                    {String(children).replace(/\n$/, '')}
-                  </SyntaxHighlighter>
-                ) : (
-                  <code {...rest} className={className}>
-                    {children}
-                  </code>
-                );
-              },
-            }}
-          >
-            {props.message.content}
-          </Markdown>
+          {props.message.ui ? (
+            props.message.ui
+          ) : (
+            <Markdown
+              className="prose max-w-full"
+              components={{
+                pre(props) {
+                  return (
+                    <pre
+                      className="relative group/pre"
+                      style={{ background: 'rgb(45, 45, 45)' }}
+                    >
+                      <CopyButton content={props.children} />
+                      {props.children}
+                    </pre>
+                  );
+                },
+                code(props) {
+                  const { children, className, node, ref, ...rest } = props;
+                  const match = /language-(\w+)/.exec(className || '');
+                  return match ? (
+                    <SyntaxHighlighter
+                      {...rest}
+                      PreTag="div"
+                      language={match[1]}
+                      style={tomorrow}
+                    >
+                      {String(children).replace(/\n$/, '')}
+                    </SyntaxHighlighter>
+                  ) : (
+                    <code {...rest} className={className}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            >
+              {props.message.content}
+            </Markdown>
+          )}
         </div>
       </div>
     );

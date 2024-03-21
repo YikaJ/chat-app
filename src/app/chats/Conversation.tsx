@@ -20,6 +20,7 @@ import {
 import { ImperativePanelHandle } from 'react-resizable-panels';
 import { AutosizeTextarea } from '@/components/ui/auto-size-textarea';
 import { useToast } from '@/components/ui/use-toast';
+import { LoaderCircle } from 'lucide-react';
 
 export default function Conversation() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, stop } =
@@ -81,6 +82,11 @@ export default function Conversation() {
                   id: 'loading',
                   role: 'assistant',
                   content: '努力思考中...',
+                  ui: (
+                    <div className="py-4 animate-spin">
+                      <LoaderCircle />
+                    </div>
+                  ),
                 }}
               />
             ) : (
