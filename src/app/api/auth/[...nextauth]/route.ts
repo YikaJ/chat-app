@@ -39,14 +39,14 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async session({ session, token }) {
-      if (session?.user && token.sub) {
-        session.user.id = token.sub
+      if (session?.user && token.userID) {
+        session.user.id = token.userID as string
       }
       return session
     },
     async jwt({ user, token }) {
       if (user) {
-        token.user_id = user.id
+        token.userID = user.id
       }
       return token
     },

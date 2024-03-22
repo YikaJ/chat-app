@@ -9,11 +9,14 @@ import {
 import { Button } from '@/components/ui/button';
 import ChatMessage from '@/components/chatbot/ChatMessage';
 import { useAutoScrollToBottom } from '@/hooks/index';
-import {
+import React, {
   FormEvent,
   KeyboardEvent,
   KeyboardEventHandler,
+  useCallback,
+  useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -21,6 +24,10 @@ import { ImperativePanelHandle } from 'react-resizable-panels';
 import { AutosizeTextarea } from '@/components/ui/auto-size-textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { LoaderCircle } from 'lucide-react';
+import { debounce } from 'lodash-es';
+import { useParams } from 'next/navigation';
+import { useEventEmitter } from 'ahooks';
+import { EventContext } from './EventProvider';
 
 export default function Conversation() {
   const {
@@ -31,6 +38,7 @@ export default function Conversation() {
     isLoading,
     stop,
     error,
+    setMessages,
   } = useChat({
     onError(err) {
       console.error(err);
@@ -42,9 +50,71 @@ export default function Conversation() {
   const inputPanelRef = useRef<ImperativePanelHandle>(null);
   const { toast } = useToast();
   const [waitingAssistant, setWaitingAssistant] = useState(false);
+  const parmas = useParams();
+  const [newChatID, setNewChatID] = useState('');
+  const [isUserEdit, setIsUserEdit] = useState(false);
+  const { eventEmitter } = useContext(EventContext);
 
+  // 实际的 chatID
+  const chatID = useMemo(() => {
+    return parmas?.chatID?.[0] || newChatID;
+  }, [parmas, newChatID]);
+
+  // 加载历史对话信息
+  const getChatHistory = async () => {
+    const response = await fetch(
+      `/api/user/chats/detail?chatID=${parmas.chatID}`
+    );
+    const {
+      Response: { Chat },
+    } = await response.json();
+    setMessages(Chat?.messages || []);
+  };
+  useEffect(() => {
+    if (chatID) getChatHistory();
+  }, []);
+
+  // 将会话保存到数据库中
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const saveConveration = useCallback(
+    debounce(async (messages: Message[]) => {
+      if (messages.length > 0) {
+        const response = await fetch('/api/user/chats/update', {
+          method: 'POST',
+          body: JSON.stringify({
+            chatID,
+            messages,
+          }),
+        });
+        const {
+          Response: { chat },
+        } = await response.json();
+
+        // 新会话状态
+        if (!chatID) {
+          // HACK: 因为 history.replaceState 不会让 useParams 获取到最新参数，需要额外记录一个值
+          // 客户端 next/router 未支持 shallow
+          setNewChatID(chat.id);
+          history.replaceState(null, '', `/ai/chats/${chat.id}`);
+
+          // 通知 List 组件创建了新的会话
+          eventEmitter?.emit({
+            type: 'CREATE_NEW_CHAT',
+            data: { chat },
+          });
+        }
+      }
+    }, 1000),
+    [chatID]
+  );
+  useEffect(() => {
+    // 只有用户已经修改过内容，才需要更新会话
+    // 纯历史阅读无需更新
+    if (isUserEdit) saveConveration(messages);
+  }, [messages]);
+
+  // 纯回车才发送
   function handleTextareaKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    // 纯回车才发送
     if (
       e.key.toLowerCase() === 'enter' &&
       !e.shiftKey &&
@@ -68,6 +138,7 @@ export default function Conversation() {
     if (input.trim()) {
       setWaitingAssistant(true);
       handleSubmit(e);
+      setIsUserEdit(true);
     }
   }
 
