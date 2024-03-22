@@ -10,8 +10,8 @@ export default function AILayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
+    <AuthProvider>
       <AIProvider>{children}</AIProvider>
-    </>
+    </AuthProvider>
   );
 }

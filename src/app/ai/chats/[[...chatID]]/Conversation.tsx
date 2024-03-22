@@ -1,3 +1,5 @@
+'use client';
+
 import { useChat, type Message, type UseChatHelpers } from 'ai/react';
 import {
   ResizableHandle,
@@ -78,7 +80,7 @@ export default function Conversation() {
 
   return (
     <ResizablePanelGroup direction="vertical">
-      <ResizablePanel defaultSize={80}>
+      <ResizablePanel defaultSize={90}>
         <div className=" h-full overflow-y-scroll" ref={scrollContainerRef}>
           <div className="space-y-8 p-10  pr-24">
             {messages.map((m, index) => (

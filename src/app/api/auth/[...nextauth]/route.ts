@@ -38,6 +38,18 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
+    async session({ session, token }) {
+      if (session?.user && token.sub) {
+        session.user.id = token.sub
+      }
+      return session
+    },
+    async jwt({ user, token }) {
+      if (user) {
+        token.user_id = user.id
+      }
+      return token
+    },
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`
