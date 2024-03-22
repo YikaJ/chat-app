@@ -6,7 +6,7 @@ import {
   render,
 } from 'ai/rsc';
 import { z } from 'zod';
-import { azureRender } from '../utils/streamable';
+import { azureRender } from '../../../utils/streamable';
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import { sleep } from 'openai/core.mjs';
 

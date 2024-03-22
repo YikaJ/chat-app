@@ -5,10 +5,8 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import ChatMessage from '@/components/chatbot/ChatMessage';
-import { useAutoScrollToBottom } from '../hooks';
-import { Textarea } from '@/components/ui/textarea';
+import { useAutoScrollToBottom } from '@/hooks/index';
 import {
   FormEvent,
   KeyboardEvent,

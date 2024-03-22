@@ -1,12 +1,11 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '@/components/AuthProvider';
 import { Header } from '@/components/Header';
-import { AI } from './action';
-import { AuthProvider } from './auth/Provider';
 
 const inter = Inter({ subsets: ['latin'] });
-const AIProvider = AI as unknown as any;
+// const AIProvider = AI as unknown as any;
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -23,10 +22,9 @@ export default function RootLayout({
       <body className="w-full h-full max-h-screen">
         <AuthProvider>
           <div className="w-full h-full max-h-screen flex flex-col">
+            {/* @ts-expect-error Async Server Component */}
             <Header />
-            <div className="flex-1">
-              <AIProvider>{children}</AIProvider>
-            </div>
+            <div className="flex-1">{children}</div>
           </div>
         </AuthProvider>
       </body>
