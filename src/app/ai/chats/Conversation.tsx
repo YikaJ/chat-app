@@ -27,6 +27,7 @@ import { LoaderCircle } from 'lucide-react';
 import { debounce } from 'lodash-es';
 import type { Chat } from '@/typings';
 import { StartUp } from './StartUp';
+import { useSearchParams } from 'next/navigation';
 
 interface IProps {
   chatID?: string;
@@ -48,13 +49,25 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
       console.error(err);
       stop();
     },
+    onResponse() {
+      // 开始有流式内容输出
+      setWaitingAssistantStream(false);
+    },
+    onFinish() {
+      // 流式内容输出完成
+      // isLoading 已经为 true 了
+
+      // 存储 AI 会话
+      saveable.current = true;
+    },
   });
   const scrollContainerRef = useAutoScrollToBottom([messages]);
   const submitBtnRef = useRef<HTMLButtonElement>(null);
   const inputPanelRef = useRef<ImperativePanelHandle>(null);
   const { toast } = useToast();
-  const [waitingAssistant, setWaitingAssistant] = useState(false);
-  const [isUserEdit, setIsUserEdit] = useState(false);
+  const [waitingAssistantStream, setWaitingAssistantStream] = useState(false);
+  const saveable = useRef(false);
+  const searchParams = useSearchParams();
 
   // 加载历史对话信息
   const getChatHistory = async (id: string) => {
@@ -64,6 +77,8 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
     } = await response.json();
     setMessages(Chat?.messages || []);
   };
+
+  // 加载历史记录
   useEffect(() => {
     console.log('Conversaction Loaded');
     if (chatID) {
@@ -74,35 +89,30 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
   }, [chatID]);
 
   // 将会话保存到数据库中
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const saveConveration = useCallback(
-    debounce(async (messages: Message[]) => {
-      if (messages.length > 0) {
-        const response = await fetch('/api/user/chats/update', {
-          method: 'POST',
-          body: JSON.stringify({
-            chatID,
-            messages,
-          }),
-        });
-        const {
-          Response: { chat },
-        } = await response.json();
-
-        // 新会话状态
-        if (!chatID) {
-          // 通知 List 组件创建了新的会话
-          onCreateChat(chat);
-        }
-      }
-    }, 2000),
-    []
-  );
   useEffect(() => {
-    // 只有用户已经修改过内容，才需要更新会话
-    // 纯历史阅读无需更新
-    if (isUserEdit) saveConveration(messages);
-  }, [messages]);
+    if (isLoading) saveable.current = false;
+    if (saveable.current && messages.length > 0) saveConveration();
+  }, [isLoading, messages]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const saveConveration = useCallback(async () => {
+    saveable.current = false;
+    const response = await fetch('/api/user/chats/update', {
+      method: 'POST',
+      body: JSON.stringify({
+        chatID,
+        messages,
+      }),
+    });
+    const {
+      Response: { Chat },
+    } = await response.json();
+
+    // 新会话状态
+    if (!searchParams.get('chatID')) {
+      // 通知 List 组件创建了新的会话
+      onCreateChat(Chat);
+    }
+  }, [messages, chatID]);
 
   // 纯回车才发送
   function handleTextareaKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
@@ -127,18 +137,12 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
 
     // 有内容再提交
     if (input.trim()) {
-      setWaitingAssistant(true);
+      // 存储用户对话
+      saveable.current = true;
+      setWaitingAssistantStream(true);
       handleSubmit(e);
-      setIsUserEdit(true);
     }
   }
-
-  useEffect(() => {
-    const lastMessage = messages.slice(-1)[0];
-    if (isLoading && lastMessage?.role === 'assistant' && lastMessage.content) {
-      setWaitingAssistant(false);
-    }
-  }, [isLoading, messages]);
 
   return (
     <ResizablePanelGroup direction="vertical">
@@ -149,7 +153,7 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
               {messages.map((m, index) => (
                 <ChatMessage key={m.id} message={m} />
               ))}
-              {!error && waitingAssistant && (
+              {!error && waitingAssistantStream && (
                 <ChatMessage
                   key="loading"
                   message={{

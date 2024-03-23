@@ -1,7 +1,7 @@
 'use client';
 
 import { Message } from 'ai/react';
-import { useContext, useEffect, useState } from 'react';
+import { FocusEventHandler, useContext, useEffect, useState } from 'react';
 import { EventContext } from './EventProvider';
 import Link from 'next/link';
 import { Edit, Trash } from 'lucide-react';
@@ -80,11 +80,30 @@ export default function List() {
     }
   }
 
-  // 更新标题
+  // 自动根据内容更新标题
   async function updateTitle(id: string) {}
 
   // 输入框 blur
-  async function handleInputBlur() {
+  async function handleUpdateTitle(chat: Chat, newTitle: string) {
+    const chatID = chat.id;
+    if (newTitle && newTitle !== chat.title) {
+      const response = await fetch('/api/user/chats/update', {
+        method: 'POST',
+        body: JSON.stringify({ chatID, title: newTitle }),
+      });
+      const {
+        Response: { Chat },
+      } = await response.json();
+      if (Chat?.id) {
+        setChats((prevState) => {
+          const newChats = prevState.map((chat) => {
+            if (chat.id === chatID) return Chat;
+            return chat;
+          });
+          return newChats;
+        });
+      }
+    }
     // 清空编辑状态
     setTitleEditedID('');
   }
@@ -107,7 +126,12 @@ export default function List() {
                 <Input
                   size={12}
                   autoFocus
-                  onBlur={handleInputBlur}
+                  onBlur={(e) => handleUpdateTitle(chat, e.currentTarget.value)}
+                  onKeyUp={(e) => {
+                    if (e.code.toLowerCase() === 'enter') {
+                      handleUpdateTitle(chat, e.currentTarget.value);
+                    }
+                  }}
                   defaultValue={chat.title}
                 />
               ) : (

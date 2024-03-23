@@ -12,7 +12,7 @@ export default function Chat({ children }: { children: React.ReactNode }) {
   const { eventEmitter } = useContext(EventContext);
 
   function handleCreateChat(chat: Chat) {
-    // HACK: 因为 history.replaceState 不会让 useParams 获取到最新参数，需要额外记录一个值
+    // HACK: 因为 history.replaceState 不会让 useParams 获取到最新参数
     // 客户端 next/router 未支持 shallow
     setTimeout(() => {
       window.history.replaceState(
@@ -20,7 +20,7 @@ export default function Chat({ children }: { children: React.ReactNode }) {
         '',
         `/ai/chats?chatID=${chat.id}`
       );
-    }, 3000);
+    }, 500);
     eventEmitter?.emit({
       type: 'CREATE_NEW_CHAT',
       data: { chat },

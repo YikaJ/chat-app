@@ -11,9 +11,11 @@ export async function POST(req: NextRequest) {
   const response = await prisma.chat.upsert({
     where: {
       id: body.chatID || '',
+      userId: session?.user?.id
     },
     update: {
-      messages: body.messages
+      messages: body.messages,
+      title: body.title
     },
     create: {
       userId: session?.user?.id,
@@ -24,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     Response: {
-      chat: response
+      Chat: response
     },
     Message: 'OK'
   })
