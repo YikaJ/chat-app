@@ -5,8 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession()
-  const query = req.nextUrl.searchParams
-  const chatID = query.get('chatID') as string
+  const searchParams = req.nextUrl.searchParams
+  const chatID = searchParams.get('chatID') as string
   const userChat = await prisma.chat.findFirst({
     where: {
       id: chatID,

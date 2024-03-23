@@ -6,8 +6,9 @@ import {
 import List from './List';
 import { Separator } from '@/components/ui/separator';
 import Conversation from './Conversation';
-import { NewChat } from './NewChat';
+import { NewChat } from './NewChatButton';
 import { EventProvider } from './EventProvider';
+import { Suspense } from 'react';
 
 export default function ChatLayout({
   children,
@@ -29,7 +30,9 @@ export default function ChatLayout({
           </div>
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={90}>{children}</ResizablePanel>
+        <ResizablePanel defaultSize={90}>
+          <Suspense fallback={'loading...'}>{children}</Suspense>
+        </ResizablePanel>
       </ResizablePanelGroup>
     </EventProvider>
   );

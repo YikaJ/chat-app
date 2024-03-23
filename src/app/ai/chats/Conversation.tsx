@@ -26,6 +26,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { LoaderCircle } from 'lucide-react';
 import { debounce } from 'lodash-es';
 import type { Chat } from '@/typings';
+import { StartUp } from './StartUp';
 
 interface IProps {
   chatID?: string;
@@ -94,8 +95,8 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
           onCreateChat(chat);
         }
       }
-    }, 1000),
-    [chatID]
+    }, 2000),
+    []
   );
   useEffect(() => {
     // 只有用户已经修改过内容，才需要更新会话
@@ -143,38 +144,40 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
     <ResizablePanelGroup direction="vertical">
       <ResizablePanel defaultSize={90}>
         <div className=" h-full overflow-y-scroll" ref={scrollContainerRef}>
-          <div className="space-y-8 p-10  pr-24">
-            {messages.map((m, index) => (
-              <ChatMessage key={m.id} message={m} />
-            ))}
-
-            {!error && waitingAssistant && (
-              <ChatMessage
-                key="loading"
-                message={{
-                  id: 'loading',
-                  role: 'assistant',
-                  content: '努力思考中...',
-                  ui: (
-                    <div className="py-4 animate-spin">
-                      <LoaderCircle />
-                    </div>
-                  ),
-                }}
-              />
-            )}
-
-            {error && (
-              <ChatMessage
-                key="loading"
-                message={{
-                  id: 'loading',
-                  role: 'assistant',
-                  content: error.message || '模型出错了...',
-                }}
-              />
-            )}
-          </div>
+          {messages.length > 0 ? (
+            <div className="space-y-8 p-10  pr-24">
+              {messages.map((m, index) => (
+                <ChatMessage key={m.id} message={m} />
+              ))}
+              {!error && waitingAssistant && (
+                <ChatMessage
+                  key="loading"
+                  message={{
+                    id: 'loading',
+                    role: 'assistant',
+                    content: '努力思考中...',
+                    ui: (
+                      <div className="py-4 animate-spin">
+                        <LoaderCircle />
+                      </div>
+                    ),
+                  }}
+                />
+              )}
+              {error && (
+                <ChatMessage
+                  key="loading"
+                  message={{
+                    id: 'loading',
+                    role: 'assistant',
+                    content: error.message || '模型出错了...',
+                  }}
+                />
+              )}
+            </div>
+          ) : (
+            <StartUp />
+          )}
         </div>
       </ResizablePanel>
       <ResizableHandle />
