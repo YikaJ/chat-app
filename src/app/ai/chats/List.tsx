@@ -4,6 +4,7 @@ import { Message } from 'ai/react';
 import { useContext, useEffect, useState } from 'react';
 import { EventContext } from './EventProvider';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 // 会话列表
 export function ListItem() {}
@@ -41,12 +42,16 @@ export default function List() {
     setChats(Response.Chats || []);
   }
   return (
-    <div className="spa-y-4">
+    <div className="px-3">
       {chats.map((chat) => {
         return (
-          <div className="hover:underline" key={chat.id}>
-            <Link href={`/ai/chats/${chat.id}`}>{chat.title}</Link>
-          </div>
+          <Link
+            key={chat.id}
+            className="p-3 hover:bg-slate-100 cursor-pointer block w-full flex-1"
+            href={`/ai/chats?chatID=${chat.id}`}
+          >
+            {chat.title}
+          </Link>
         );
       })}
     </div>

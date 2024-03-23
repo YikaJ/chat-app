@@ -18,7 +18,7 @@ export default function ChatLayout({
     <EventProvider>
       <ResizablePanelGroup direction="horizontal" className="border">
         <ResizablePanel defaultSize={10} minSize={10} maxSize={30}>
-          <div className="p-3">
+          <div className="px-3 mt-3">
             <NewChat />
             <Separator className="my-3" />
           </div>

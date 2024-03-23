@@ -25,11 +25,14 @@ import { AutosizeTextarea } from '@/components/ui/auto-size-textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { LoaderCircle } from 'lucide-react';
 import { debounce } from 'lodash-es';
-import { useParams } from 'next/navigation';
-import { useEventEmitter } from 'ahooks';
-import { EventContext } from './EventProvider';
+import type { Chat } from '@/typings';
 
-export default function Conversation() {
+interface IProps {
+  chatID?: string;
+  onCreateChat: (chat: Chat) => void;
+}
+
+export default function Conversation({ chatID, onCreateChat }: IProps) {
   const {
     messages,
     input,
@@ -50,29 +53,24 @@ export default function Conversation() {
   const inputPanelRef = useRef<ImperativePanelHandle>(null);
   const { toast } = useToast();
   const [waitingAssistant, setWaitingAssistant] = useState(false);
-  const parmas = useParams();
-  const [newChatID, setNewChatID] = useState('');
   const [isUserEdit, setIsUserEdit] = useState(false);
-  const { eventEmitter } = useContext(EventContext);
-
-  // 实际的 chatID
-  const chatID = useMemo(() => {
-    return parmas?.chatID?.[0] || newChatID;
-  }, [parmas, newChatID]);
 
   // 加载历史对话信息
-  const getChatHistory = async () => {
-    const response = await fetch(
-      `/api/user/chats/detail?chatID=${parmas.chatID}`
-    );
+  const getChatHistory = async (id: string) => {
+    const response = await fetch(`/api/user/chats/detail?chatID=${id}`);
     const {
       Response: { Chat },
     } = await response.json();
     setMessages(Chat?.messages || []);
   };
   useEffect(() => {
-    if (chatID) getChatHistory();
-  }, []);
+    console.log('Conversaction Loaded');
+    if (chatID) {
+      getChatHistory(chatID);
+    } else {
+      setMessages([]);
+    }
+  }, [chatID]);
 
   // 将会话保存到数据库中
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -92,16 +90,8 @@ export default function Conversation() {
 
         // 新会话状态
         if (!chatID) {
-          // HACK: 因为 history.replaceState 不会让 useParams 获取到最新参数，需要额外记录一个值
-          // 客户端 next/router 未支持 shallow
-          setNewChatID(chat.id);
-          history.replaceState(null, '', `/ai/chats/${chat.id}`);
-
           // 通知 List 组件创建了新的会话
-          eventEmitter?.emit({
-            type: 'CREATE_NEW_CHAT',
-            data: { chat },
-          });
+          onCreateChat(chat);
         }
       }
     }, 1000),
@@ -206,6 +196,7 @@ export default function Conversation() {
               maxHeight={74}
               minHeight={30}
               className="resize-none"
+              autoFocus
             />
             <Button ref={submitBtnRef} type="submit">
               提交
