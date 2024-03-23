@@ -21,10 +21,10 @@ export default function RootLayout({
     <html lang="en">
       <body className="w-full h-full max-h-screen">
         <AuthProvider>
-          <div className="w-full h-full max-h-screen flex flex-col">
+          <div className="w-full h-full max-h-screen flex flex-col overflow-hidden">
             {/* @ts-expect-error Async Server Component */}
             <Header />
-            <div className="flex-1">{children}</div>
+            <div className="flex-1 overflow-hidden">{children}</div>
           </div>
         </AuthProvider>
       </body>
