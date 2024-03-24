@@ -3,44 +3,10 @@ import type { Message } from 'ai/react';
 import Markdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useState } from 'react';
-import { sleep } from 'openai/core.mjs';
-import { CopyIcon, CheckIcon } from '@radix-ui/react-icons';
-import classNames from 'classnames';
+import { Copy } from '../Copy';
 
 interface IProps {
   message: Message;
-}
-
-function CopyButton(props: any) {
-  const [copySuccess, setCopySuccess] = useState(false);
-
-  async function handleCopy() {
-    const copyContent = props.content.props.children;
-    if (copyContent) {
-      await navigator.clipboard.writeText(copyContent);
-      setCopySuccess(true);
-      await sleep(1500);
-      setCopySuccess(false);
-    }
-  }
-
-  return (
-    <div
-      className={classNames(
-        'absolute right-3 top-3  transition duration-300 ease-in-out group-hover/pre:opacity-100 group-hover/pre:translate-y-0 group-hover/pre:block',
-        {
-          'hidden translate-y-full opacity-0': !copySuccess,
-        }
-      )}
-    >
-      {copySuccess ? (
-        <CheckIcon className="w-5 h-5" />
-      ) : (
-        <CopyIcon className="cursor-pointer w-5 h-5" onClick={handleCopy} />
-      )}
-    </div>
-  );
 }
 
 export default function ChatMessage(props: IProps) {
@@ -60,12 +26,15 @@ export default function ChatMessage(props: IProps) {
               className="prose max-w-full"
               components={{
                 pre(props) {
+                  const copyContent = (props.children as any).props.children;
                   return (
                     <pre
                       className="relative group/pre"
                       style={{ background: 'rgb(45, 45, 45)' }}
                     >
-                      <CopyButton content={props.children} />
+                      <div className="absolute hidden right-3 top-3 transition duration-300 ease-in-out group-hover/pre:opacity-100 group-hover/pre:translate-y-0 group-hover/pre:block">
+                        <Copy content={copyContent} />
+                      </div>
                       {props.children}
                     </pre>
                   );

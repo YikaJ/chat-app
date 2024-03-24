@@ -26,12 +26,16 @@ import { useToast } from '@/components/ui/use-toast';
 import {
   ArrowUpFromLineIcon,
   CircleStopIcon,
+  CopyIcon,
   LoaderCircleIcon,
+  RefreshCwIcon,
 } from 'lucide-react';
 import { debounce } from 'lodash-es';
 import type { Chat } from '@/typings';
 import { StartUp } from './StartUp';
 import { useSearchParams } from 'next/navigation';
+import classNames from 'classnames';
+import { Copy } from '@/components/Copy';
 
 interface IProps {
   chatID?: string;
@@ -48,6 +52,7 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
     stop,
     error,
     setMessages,
+    reload,
   } = useChat({
     api: '/api/chats/chat',
     onError(err) {
@@ -158,15 +163,58 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
     }
   }
 
+  async function handleReload() {
+    setWaitingAssistantStream(true);
+    reload();
+  }
+
   return (
     <ResizablePanelGroup direction="vertical">
       <ResizablePanel defaultSize={90}>
         <div className=" h-full overflow-y-scroll" ref={scrollContainerRef}>
           {messages.length > 0 ? (
             <div className="space-y-8 p-10  pr-24">
-              {messages.map((m, index) => (
-                <ChatMessage key={m.id} message={m} />
-              ))}
+              {messages.map((m, index) => {
+                const isNotLast = index < messages.length - 1;
+                const isLast = index === messages.length - 1;
+                const isLoadingAndLast = isLoading && isLast;
+                const isNotLoadingAndLast = !isLoading && isLast;
+
+                return (
+                  <div key={m.id} className="group/message">
+                    <ChatMessage message={m} />
+                    {/* 对话框下的工具栏 */}
+                    <div
+                      className={classNames(
+                        'flex space-x-3 ml-16 mt-3 text-zinc-500',
+                        {
+                          // loading 时，最后一条不展示
+                          // 非 loading 时，最后一条常驻展示
+                          // 非最后一条的都可以 hover 展示
+                          invisible: isNotLast || isLoadingAndLast,
+                          visible: isNotLoadingAndLast,
+                          'group-hover/message:visible': isNotLast,
+                        }
+                      )}
+                    >
+                      {m.role === 'assistant' && (
+                        <>
+                          <Copy
+                            className="w-6 h-6 cursor-pointer hover:text-zinc-800"
+                            content={m.content}
+                          />
+                          {isLast && (
+                            <RefreshCwIcon
+                              onClick={handleReload}
+                              className="w-6 h-6 cursor-pointer hover:text-zinc-800"
+                            />
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
 
               {/* Loading UI */}
               {!error && waitingAssistantStream && (
