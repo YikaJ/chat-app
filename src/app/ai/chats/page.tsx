@@ -10,6 +10,7 @@ import type { Chat } from '@/typings';
 export default function Chat({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const { eventEmitter } = useContext(EventContext);
+  const chatID = searchParams.get('chatID') || '';
 
   function handleCreateChat(chat: Chat) {
     // HACK: 因为 history.replaceState 不会让 useParams 获取到最新参数
@@ -27,10 +28,5 @@ export default function Chat({ children }: { children: React.ReactNode }) {
     });
   }
 
-  return (
-    <Conversation
-      chatID={searchParams.get('chatID') || ''}
-      onCreateChat={handleCreateChat}
-    />
-  );
+  return <Conversation chatID={chatID} onCreateChat={handleCreateChat} />;
 }

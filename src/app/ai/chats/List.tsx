@@ -1,6 +1,6 @@
 'use client';
 
-import { Message } from 'ai/react';
+import { Message, useCompletion } from 'ai/react';
 import { FocusEventHandler, useContext, useEffect, useState } from 'react';
 import { EventContext } from './EventProvider';
 import Link from 'next/link';
@@ -38,24 +38,31 @@ export default function List() {
   const { eventEmitter } = useContext(EventContext);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { complete, completion, isLoading } = useCompletion({
+    api: '/api/chats/autoTitle',
+  });
+  const [newChatID, setNewChatID] = useState('');
 
   useEffect(() => {
     fetchUserChats();
   }, []);
 
   // 监听创建了新对话
-  eventEmitter?.useSubscription(({ type, data }) => {
-    if (type === 'CREATE_NEW_CHAT') {
-      setChats((prev) => {
-        return [...prev, data.chat];
-      });
-      // TODO：向 AI 尝试获取新标题
+  eventEmitter?.useSubscription(
+    async ({ type, data }: { type: string; data: { chat: Chat } }) => {
+      if (type === 'CREATE_NEW_CHAT') {
+        setChats((prev) => {
+          return [...prev, data.chat];
+        });
+        // 向 AI 尝试获取新标题
+        autoCreateTitle(data.chat);
+      }
     }
-  });
+  );
 
   // 获取会话列表
   async function fetchUserChats() {
-    const response = await fetch('/api/user/chats');
+    const response = await fetch('/api/chats');
     const { Response } = await response.json();
 
     setChats(Response.Chats || []);
@@ -63,7 +70,7 @@ export default function List() {
 
   // 删除单个会话
   async function handleDel(id: string) {
-    const response = await fetch(`/api/user/chats?chatID=${id}`, {
+    const response = await fetch(`/api/chats?chatID=${id}`, {
       method: 'DELETE',
     });
     const { Response } = await response.json();
@@ -81,13 +88,18 @@ export default function List() {
   }
 
   // 自动根据内容更新标题
-  async function updateTitle(id: string) {}
+  async function autoCreateTitle(chat: Chat) {
+    setNewChatID(chat.id);
+    const newTitle = await complete(chat.messages[0]?.content);
+    if (newTitle) await handleUpdateTitle(chat, newTitle);
+    setNewChatID('');
+  }
 
   // 输入框 blur
   async function handleUpdateTitle(chat: Chat, newTitle: string) {
     const chatID = chat.id;
     if (newTitle && newTitle !== chat.title) {
-      const response = await fetch('/api/user/chats/update', {
+      const response = await fetch('/api/chats/update', {
         method: 'POST',
         body: JSON.stringify({ chatID, title: newTitle }),
       });
@@ -138,8 +150,9 @@ export default function List() {
                 <Link
                   className="block py-3 flex-1 truncate"
                   href={`/ai/chats?chatID=${chat.id}`}
+                  key={chat.id}
                 >
-                  {chat.title}
+                  {isLoading && newChatID === chat.id ? '...' : chat.title}
                 </Link>
               )}
 

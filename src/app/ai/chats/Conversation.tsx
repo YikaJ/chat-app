@@ -45,6 +45,7 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
     error,
     setMessages,
   } = useChat({
+    api: '/api/chats/chat',
     onError(err) {
       console.error(err);
       stop();
@@ -71,7 +72,7 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
 
   // 加载历史对话信息
   const getChatHistory = async (id: string) => {
-    const response = await fetch(`/api/user/chats/detail?chatID=${id}`);
+    const response = await fetch(`/api/chats/detail?chatID=${id}`);
     const {
       Response: { Chat },
     } = await response.json();
@@ -96,7 +97,7 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const saveConveration = useCallback(async () => {
     saveable.current = false;
-    const response = await fetch('/api/user/chats/update', {
+    const response = await fetch('/api/chats/update', {
       method: 'POST',
       body: JSON.stringify({
         chatID,
@@ -195,6 +196,7 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
         <form onSubmit={handleFormSubmit} className="w-full">
           <div className="flex w-full items-center space-x-2 px-14">
             <AutosizeTextarea
+              key={chatID}
               placeholder="请输入内容..."
               value={input}
               onChange={handleInputChange}

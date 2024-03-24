@@ -1,7 +1,8 @@
-import { OpenAIStream, StreamingTextResponse } from 'ai';
+import { Message, OpenAIStream, StreamingTextResponse } from 'ai';
 import VenusOpenAPI from '@/lib/node_venus_openai/openapi';
 import { VenusStream } from '@/lib/venusStream'
 import { Readable } from 'stream';
+import { NextRequest } from 'next/server';
 
 // Create an OpenAI API client (that's edge friendly!)
 const secret_id = process.env.AK;
@@ -10,11 +11,9 @@ const venusOpenAPIClient = new VenusOpenAPI(secret_id, secret_key)
 
 
 // Set the runtime to edge for best performance
-export const runtime = 'nodejs';
+// export const runtime = 'nodejs';
 
-export async function POST(req: Request) {
-  const { messages } = await req.json();
-
+export const AIChat = async (messages: Message[]) => {
   const response = await venusOpenAPIClient.request('http://v2.open.venus.oa.com/chat/single', {
     appGroupId: 2727,
     model: 'gpt-3.5-turbo-16k',
@@ -31,6 +30,11 @@ export async function POST(req: Request) {
   // Ask OpenAI for a streaming chat completion given the prompt
   const stream = VenusStream(response);
   return new StreamingTextResponse(stream);
+}
+
+export async function POST(req: NextRequest) {
+  const { messages } = await req.json();
+  return AIChat(messages)
 }
 
 // import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
