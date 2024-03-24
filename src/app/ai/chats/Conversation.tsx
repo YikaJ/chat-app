@@ -23,7 +23,11 @@ import React, {
 import { ImperativePanelHandle } from 'react-resizable-panels';
 import { AutosizeTextarea } from '@/components/ui/auto-size-textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { LoaderCircle } from 'lucide-react';
+import {
+  ArrowUpFromLineIcon,
+  CircleStopIcon,
+  LoaderCircleIcon,
+} from 'lucide-react';
 import { debounce } from 'lodash-es';
 import type { Chat } from '@/typings';
 import { StartUp } from './StartUp';
@@ -47,8 +51,8 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
   } = useChat({
     api: '/api/chats/chat',
     onError(err) {
-      console.error(err);
-      stop();
+      saveable.current = false;
+      setWaitingAssistantStream(false);
     },
     onResponse() {
       // 开始有流式内容输出
@@ -115,6 +119,13 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
     }
   }, [messages, chatID]);
 
+  // 停止流式输出
+  function handleStopStreaming() {
+    stop();
+    setWaitingAssistantStream(false);
+    saveable.current = false;
+  }
+
   // 纯回车才发送
   function handleTextareaKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (
@@ -131,6 +142,8 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
   }
 
   function handleFormSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
     if (isLoading) {
       toast({ title: '请先等待上一段内容结束后再发送' });
       return;
@@ -154,6 +167,8 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
               {messages.map((m, index) => (
                 <ChatMessage key={m.id} message={m} />
               ))}
+
+              {/* Loading UI */}
               {!error && waitingAssistantStream && (
                 <ChatMessage
                   key="loading"
@@ -163,7 +178,7 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
                     content: '努力思考中...',
                     ui: (
                       <div className="py-4 animate-spin">
-                        <LoaderCircle />
+                        <LoaderCircleIcon />
                       </div>
                     ),
                   }}
@@ -207,9 +222,15 @@ export default function Conversation({ chatID, onCreateChat }: IProps) {
               className="resize-none"
               autoFocus
             />
-            <Button ref={submitBtnRef} type="submit">
-              提交
-            </Button>
+            {isLoading ? (
+              <Button size="icon" onClick={handleStopStreaming}>
+                <CircleStopIcon className="w-6 h-6" />
+              </Button>
+            ) : (
+              <Button size="icon" ref={submitBtnRef} type="submit">
+                <ArrowUpFromLineIcon className="w-6 h-6" />
+              </Button>
+            )}
           </div>
         </form>
       </ResizablePanel>
